@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>编辑计时器</title>
+    <link rel="stylesheet" type="text/css" href="css/share.css">
+    <link rel="stylesheet" type="text/css" href="css/edit.css">
+  </head>
+  <body>
+    <p>时间：
+    <script>window.$ = window.jQuery = require('jquery');</script>
+    <select class="seltime" name="seltimed" id="seltimed"></select>天
+    <select class="seltime" name="seltimeh" id="seltimeh"></select>时
+    <select class="seltime" name="seltimem" id="seltimem"></select>分
+    <select class="seltime" name="seltimes" id="seltimes"></select>秒
+    </p>
+    <p>名称：<input type="text" name="textnote" id="textnote" size="32" maxlength="32" value="未命名计时器"></p>
+    <p id="btnbox"><input type="button" id="btnok" value="确定" onclick="saveclosewindow()">&emsp;<input type="button" id="btncancel" value="取消" onclick="closewindow()"></p>
+    <script src="js/share.js"></script>
+    <script src="js/edit.js"></script>
+  </body>
+</html>

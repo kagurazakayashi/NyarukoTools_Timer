@@ -1,0 +1,10 @@
+#btnbox {
+    position: fixed;
+    display: block;
+    bottom: 10px;
+    right: 10px;
+    text-align: right;
+}
+#btnbox input {
+    width: 100px;
+}

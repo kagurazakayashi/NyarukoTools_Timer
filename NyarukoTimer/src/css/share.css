@@ -1,0 +1,27 @@
+@font-face {
+    font-family: 'display';
+    src: url('../font/display.ttf');
+    src: url('../font/display.ttf') format('truetype');
+}
+body,td,th,input,select {
+    font-family: "思源黑体","Source Han Sans","苹方黑体","PingFang SC","冬青黑体","Hiragino Sans GB","微软雅黑","Microsoft YaHei","Hiragino Sans GB","STHeiti Light","SimHei","serif","sans-serif","cursive","fantasy","monospace";
+    font-size: 12pt;
+}
+body {
+    background-color: #efeff0;
+    margin-left: 10px;
+    margin-top: 10px;
+    margin-right: 10px;
+    margin-bottom: 10px;
+    user-select: none;
+}
+#nouse {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.2);
+    z-index: 100000;
+}

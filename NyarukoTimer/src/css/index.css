@@ -1,0 +1,26 @@
+.timer {
+    display: block;
+    height: 100px;
+    padding: 10px;
+}
+.timerselected {
+    background-color: #FFF;
+}
+.timertime {
+    font-size: 50px;
+}
+.timertimenum {
+    font-family: "display";
+}
+.timerinfobox {
+    display: inline-block;
+}
+.timertitle {
+    font-size: 20px;
+}
+.timerinfo {
+    font-size: 15px;
+}
+.timerbtnbox {
+    height: 40px;
+}

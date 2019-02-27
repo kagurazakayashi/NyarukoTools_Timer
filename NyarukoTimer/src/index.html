@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>计时器</title>
+    <link rel="stylesheet" type="text/css" href="css/share.css">
+    <link rel="stylesheet" type="text/css" href="css/index.css">
+  </head>
+  <body>
+    <script>window.$ = window.jQuery = require('jquery');</script>
+    <div id="nouse"></div>
+    <table width="100%" border="0" cellpadding="0" cellspacing="0">
+        <tbody>
+          <tr>
+            <td align="left">计时器列表</td>
+            <td align="right"><input type="button" id="btnadd" value="+ 新建" onclick="createWindowEdit()"></td>
+          </tr>
+        </tbody>
+    </table>
+    <hr>
+    <div id="timerbox">
+        <div class="timer timerselected">
+            <span class="timertime">
+                <span class="timertimenum timertimeh">00</span>:
+                <span class="timertimenum timertimem">00</span>:
+                <span class="timertimenum timertimes">00</span>
+            </span>
+            <span class="timerinfobox">
+                <span class="timertitle">未命名计时器 1</span><br/>
+                起始时间:&nbsp;<span class="timerinfo">0000-00-00&nbsp;00:00:00, 倒计时</span>
+            </span>
+            <div class="timerbtnbox" id="timerbtnbox">
+                <input type="button" name="btnTiming" class="timerbtn btnTiming" id="btnTiming" value="正计时" onclick="btnTiming()">&nbsp;
+                <input type="button" name="btnCountdown" class="timerbtn btnCountdown" id="btnCountdown" value="倒计时" onclick="btnCountdown()">&nbsp;
+                <input type="button" name="btnPause" class="timerbtn btnPause" id="btnPause" value="暂停" onclick="cbtnPause()">&nbsp;
+                <input type="button" name="btnShow" class="timerbtn btnShow" id="btnShow" value="放映" onclick="cbtnShow()">&nbsp;
+                <input type="button" name="btnEdit" class="timerbtn btnEdit" id="btnEdit" value="编辑" onclick="cbtnEdit()">&nbsp;
+                <input type="button" name="btnReset" class="timerbtn btnReset" id="btnReset" value="重置" onclick="cbtnReset()">&nbsp;
+                <input type="button" name="btnDelete" class="timerbtn btnDelete" id="btnDelete" value="删除" onclick="cbtnDelete()">
+            </div>
+        </div>
+        <div class="timer">
+            <span class="timertime">
+                <span class="timertimenum timertimeh">00</span>:
+                <span class="timertimenum timertimem">00</span>:
+                <span class="timertimenum timertimes">00</span>
+            </span>
+            <span class="timerinfobox">
+                <span class="timertitle">未命名计时器 2</span><br/>
+                <span class="timerinfo">起始时间:&nbsp;0000-00-00&nbsp;00:00:00, 倒计时</span>
+            </span>
+        </div>
+    </div>
+    <script src="js/share.js"></script>
+    <script src="js/indexscript.js"></script>
+  </body>
+</html>
