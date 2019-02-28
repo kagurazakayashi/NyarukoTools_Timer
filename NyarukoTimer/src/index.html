@@ -19,15 +19,16 @@
     </table>
     <hr>
     <div id="timerbox">
-        <div class="timer timerselected">
+        <div class="timer timerselected" id="timer_">
             <span class="timertime">
-                <span class="timertimenum timertimeh">00</span>:
-                <span class="timertimenum timertimem">00</span>:
-                <span class="timertimenum timertimes">00</span>
+                <span class="timertimenum timertimeh" id="timertimeh_">00</span>:
+                <span class="timertimenum timertimem" id="timertimem_">00</span>:
+                <span class="timertimenum timertimes" id="timertimes_">00</span>
             </span>
             <span class="timerinfobox">
-                <span class="timertitle">未命名计时器 1</span><br/>
-                起始时间:&nbsp;<span class="timerinfo">0000-00-00&nbsp;00:00:00, 倒计时</span>
+                <span class="timertitle" id="timertitle_">未命名计时器 1</span><br/>
+                创建时间:&nbsp;<span class="timerinfo timerinfoa" id="timerinfoa_">0000-00-00&nbsp;00:00:00</span>&nbsp;状态:<span class="timerinfo timerinfob" id="timerinfob_">倒计时</span><br/>
+                预计结束时间:&nbsp;<span class="timerinfo timerinfoc_" id="timerinfoc_">0000-00-00&nbsp;00:00:00</span>
             </span>
             <div class="timerbtnbox" id="timerbtnbox">
                 <input type="button" name="btnTiming" class="timerbtn btnTiming" id="btnTiming" value="正计时" onclick="btnTiming()">&nbsp;
@@ -39,17 +40,18 @@
                 <input type="button" name="btnDelete" class="timerbtn btnDelete" id="btnDelete" value="删除" onclick="cbtnDelete()">
             </div>
         </div>
-        <div class="timer">
-            <span class="timertime">
-                <span class="timertimenum timertimeh">00</span>:
-                <span class="timertimenum timertimem">00</span>:
-                <span class="timertimenum timertimes">00</span>
-            </span>
-            <span class="timerinfobox">
-                <span class="timertitle">未命名计时器 2</span><br/>
-                <span class="timerinfo">起始时间:&nbsp;0000-00-00&nbsp;00:00:00, 倒计时</span>
-            </span>
-        </div>
+        <div class="timer" id="timer_">
+          <span class="timertime">
+              <span class="timertimenum timertimeh" id="timertimeh_">00</span>:
+              <span class="timertimenum timertimem" id="timertimem_">00</span>:
+              <span class="timertimenum timertimes" id="timertimes_">00</span>
+          </span>
+          <span class="timerinfobox">
+              <span class="timertitle" id="timertitle_">未命名计时器 1</span><br/>
+              创建时间:&nbsp;<span class="timerinfo timerinfoa" id="timerinfoa_">0000-00-00&nbsp;00:00:00</span>&nbsp;状态:<span class="timerinfo timerinfob" id="timerinfob_">倒计时</span><br/>
+              预计结束时间:&nbsp;<span class="timerinfo timerinfoc_" id="timerinfoc_">0000-00-00&nbsp;00:00:00</span>
+          </span>
+      </div>
     </div>
     <script src="js/share.js"></script>
     <script src="js/indexscript.js"></script>

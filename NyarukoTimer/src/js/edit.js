@@ -12,18 +12,18 @@ function closewindow() {
     ipcRenderer.send('closeWinEdit',[0]);
 }
 function saveclosewindow() {
-    let dd = parseInt($("#seltimed").val());
-    let hh = parseInt($("#seltimeh").val());
-    let mm = parseInt($("#seltimem").val());
-    let ss = parseInt($("#seltimes").val());
+    let days = parseInt($("#seltimed").val());
+    let hours = parseInt($("#seltimeh").val());
+    let minutes = parseInt($("#seltimem").val());
+    let seconds = parseInt($("#seltimes").val());
     let textnote = $("#textnote");
-    let tt = textnote.val();
+    let title = textnote.val();
     let ctime = creCurDateTime();
-    if (tt == "") {
+    if (title == "") {
         textnote.attr("value",ctime);
-        tt = ctime;
+        title = ctime;
     }
-    if ((dd + hh + mm + ss) == 0) {
+    if ((days + hours + minutes + seconds) == 0) {
         const options = {
             type: 'error',
             title: '输入有误',
@@ -32,11 +32,11 @@ function saveclosewindow() {
         }
         ipcRenderer.send('msgboxWinEdit',options);
     } else {
-        ipcRenderer.send('closeWinEdit',[1,dd,hh,mm,ss,tt]);
+        ipcRenderer.send('closeWinEdit',[1,days,hours,minutes,seconds,title]);
     }
 }
 function creCurDateTime() {
-    return "未命名计时器 " + curDateTime();
+    return "未命名计时器 " + curDateTimeString();
 }
 function settitle(ctime=null) {
     if (ctime == null) ctime = creCurDateTime();
