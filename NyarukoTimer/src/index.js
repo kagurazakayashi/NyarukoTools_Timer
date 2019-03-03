@@ -25,38 +25,119 @@ function mkmenu() {
             }
         }]
     },{
-        label: '编辑',
+        label: '计时器管理',
         submenu: [{
-            label: '撤销',
-            accelerator: 'CmdOrCtrl+Z',
-            role: 'undo'
-        },{
-            label: '重做',
-            accelerator: 'Shift+CmdOrCtrl+Z',
-            role: 'redo'
+            label: '新建',
+            accelerator: 'CmdOrCtrl+N',
+            click: (item,focusedWindow) => {
+                if (focusedWindow) win.webContents.send('indexmenu', 4);
+            }
         },{
             type: 'separator'
         },{
-            label: '剪切',
-            accelerator: 'CmdOrCtrl+X',
-            role: 'cut'
+            label: '当前选中计时器',
+            enabled: false
         },{
-            label: '复制',
-            accelerator: 'CmdOrCtrl+C',
-            role: 'copy'
+            label: '放映',
+            accelerator: 'CmdOrCtrl+D',
+            click: (item,focusedWindow) => {
+                if (focusedWindow) win.webContents.send('indexmenu', 0);
+            }
         },{
-            label: '粘贴',
-            accelerator: 'CmdOrCtrl+V',
-            role: 'paste'
+            label: '编辑',
+            accelerator: 'CmdOrCtrl+E',
+            click: (item,focusedWindow) => {
+                if (focusedWindow) win.webContents.send('indexmenu', 1);
+            }
         },{
-            label: '全选',
-            accelerator: 'CmdOrCtrl+A',
-            role: 'selectall'
+            label: '重置',
+            accelerator: 'CmdOrCtrl+R',
+            click: (item,focusedWindow) => {
+                if (focusedWindow) win.webContents.send('indexmenu', 2);
+            }
+        },{
+            label: '删除',
+            accelerator: 'CmdOrCtrl+W',
+            click: (item,focusedWindow) => {
+                if (focusedWindow) win.webContents.send('indexmenu', 3);
+            }
+        },{
+            type: 'separator'
+        },{
+            label: '所有计时器',
+            enabled: false
+        },{
+            label: '全部删除',
+            click: (item,focusedWindow) => {
+                if (focusedWindow) win.webContents.send('indexmenu', 5);
+            }
+        }]
+    },{
+        label: '放映色彩',
+        submenu: [{
+            type: 'separator'
+        },{
+            label: '默认颜色',
+            accelerator: 'CmdOrCtrl+Alt+D',
+            click: (item,focusedWindow) => {
+                if (focusedWindow) win.webContents.send('indexmenu', 50);
+            }
+        },{
+            type: 'separator'
+        },{
+            label: '一般颜色',
+            enabled: false
+        },{
+            label: '白色',
+            accelerator: 'CmdOrCtrl+Alt+W',
+            click: (item,focusedWindow) => {
+                if (focusedWindow) win.webContents.send('indexmenu', 51);
+            }
+        },{
+            label: '灰色',
+            click: (item,focusedWindow) => {
+                if (focusedWindow) win.webContents.send('indexmenu', 52);
+            }
+        },{
+            label: '天蓝',
+            click: (item,focusedWindow) => {
+                if (focusedWindow) win.webContents.send('indexmenu', 53);
+            }
+        },{
+            label: '粉色',
+            click: (item,focusedWindow) => {
+                if (focusedWindow) win.webContents.send('indexmenu', 54);
+            }
+        },{
+            type: 'separator'
+        },{
+            label: '色度键支持',
+            enabled: false
+        },{
+            label: '绿色',
+            accelerator: 'CmdOrCtrl+Alt+G',
+            click: (item,focusedWindow) => {
+                if (focusedWindow) win.webContents.send('indexmenu', 55);
+            }
+        },{
+            label: '蓝色',
+            click: (item,focusedWindow) => {
+                if (focusedWindow) win.webContents.send('indexmenu', 56);
+            }
+        },{
+            label: '红色',
+            click: (item,focusedWindow) => {
+                if (focusedWindow) win.webContents.send('indexmenu', 57);
+            }
         }]
     },{
         label: '帮助',
         submenu: [{
+            label: '调试工具',
+            enabled: false
+        },{
             label: '关闭子窗口',
+            accelerator: 'CmdOrCtrl+Alt+Q',
             click: (item,focusedWindow) => {
                 if (focusedWindow) {
                     if (focusedWindow.id === 1) {
@@ -68,7 +149,7 @@ function mkmenu() {
             }
         },{
             label: '重新载入资源',
-            accelerator: 'CmdOrCtrl+R',
+            accelerator: 'CmdOrCtrl+Alt+R',
             click: (item,focusedWindow) => {
                 if (focusedWindow) {
                     focusedWindow.reload()
@@ -76,7 +157,6 @@ function mkmenu() {
             }
         },{
             label: '开发者工具',
-            accelerator: 'Ctrl+Shift+I',
             click: (item,focusedWindow) => {
                 if (focusedWindow) {
                     focusedWindow.toggleDevTools()
@@ -89,6 +169,7 @@ function mkmenu() {
             enabled: false
         },{
             label: '主页',
+            accelerator: 'F1',
             click: () => {
                 shell.openExternal('https://github.com/kagurazakayashi/NyarukoTools')
             }
@@ -99,7 +180,7 @@ function mkmenu() {
                     const options = {
                         type: 'info',
                         title: '关于',
-                        buttons: ['知道了'],
+                        buttons: ['继续'],
                         message: '直播用计时器工具，版本 '+version+'，神楽坂雅詩'
                     }
                     dialog.showMessageBox(focusedWindow,options,function(){})
@@ -164,10 +245,10 @@ function createWindowShow() {
         winShow = null
     })
 }
-function createWindowEdit() {
+function createWindowEdit(editarg) {
     winEdit = new BrowserWindow({
         width: 420, 
-        height: 220,
+        height: 250,
         backgroundColor: '#EFEFF0',
         title: '编辑计时器',
         parent: win,
@@ -190,23 +271,26 @@ function createWindowEdit() {
     // winEdit.webContents.openDevTools()
     winEdit.on('closed', () => {
         win.webContents.send('msgWinEdit', [0]);
-        ipcMain.removeAllListeners('closeWinEdit');
+        ipcMain.removeAllListeners('closeWinEdit')
         winEdit = null
     })
     winEdit.webContents.on('did-finish-load', () => {
-        winEdit.webContents.send('wineditinit', null);
+        winEdit.webContents.send('wineditinit', editarg)
     })
     ipcMain.on('closeWinEdit', (event, arg) => {
-        win.webContents.send('msgWinEdit', arg);
+        win.webContents.send('msgWinEdit', arg)
         winEdit.close()
     })
 }
 //监听
-ipcMain.on('openWinEdit', (event) => {
-    createWindowEdit()
+ipcMain.on('openWinEdit', (event, arg) => {
+    createWindowEdit(arg)
 })
 ipcMain.on('msgboxWinEdit', (event, arg) => {
     dialog.showMessageBox(winEdit,arg,function(){})
+})
+ipcMain.on('msgboxWin', (event, arg) => {
+    dialog.showMessageBox(win,arg,function(){})
 })
 // 當 Electron 完成初始化，並且準備好建立瀏覽器視窗時
 // 會呼叫這的方法

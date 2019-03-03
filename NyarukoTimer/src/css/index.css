@@ -8,9 +8,12 @@
 }
 .timertime {
     font-size: 50px;
+    width: 270px;
+    display: inline-block;
 }
 .timertimenum {
     font-family: "display";
+    font-variant-numeric: lining-nums;
 }
 .timerinfobox {
     display: inline-block;

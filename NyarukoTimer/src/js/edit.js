@@ -32,7 +32,8 @@ function saveclosewindow() {
         }
         ipcRenderer.send('msgboxWinEdit',options);
     } else {
-        ipcRenderer.send('closeWinEdit',[1,days,hours,minutes,seconds,title]);
+        let modeselid = parseInt($("#modesel").val());
+        ipcRenderer.send('closeWinEdit',[1,days,hours,minutes,seconds,title,modeselid]);
     }
 }
 function creCurDateTime() {
@@ -49,10 +50,12 @@ addnumoption("seltimeh",23);
 addnumoption("seltimem",59);
 addnumoption("seltimes",59);
 ipcRenderer.on('wineditinit', (event, arg) => {
-    if (arg == null) return;
-    $("#seltimed #opt"+arg[0]).attr("selected","selected");
-    $("#seltimeh #opt"+arg[1]).attr("selected","selected");
-    $("#seltimem #opt"+arg[2]).attr("selected","selected");
-    $("#seltimes #opt"+arg[3]).attr("selected","selected");
-    settitle(arg[4]);
+    if (arg) {
+        $("#seltimed #opt"+arg[0]).attr("selected","selected");
+        $("#seltimeh #opt"+arg[1]).attr("selected","selected");
+        $("#seltimem #opt"+arg[2]).attr("selected","selected");
+        $("#seltimes #opt"+arg[3]).attr("selected","selected");
+        settitle(arg[4]);
+        $("#modesel #modesel"+arg[5]).attr("selected","selected");
+    }
 })
