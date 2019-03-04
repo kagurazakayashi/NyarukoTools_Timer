@@ -2,6 +2,7 @@ const {app, BrowserWindow, Menu, shell, dialog, ipcMain} = require('electron')
 const path = require('path')
 const url = require('url')
 app.disableHardwareAcceleration()
+app.setAppUserModelId("org.yashi.timer")
 
 // 將這個 window 物件記在全域變數裡。
 // 如果沒這麼做，這個視窗在 JavaScript 物件被垃圾回收時（GC）後就會被自動關閉。
@@ -171,7 +172,7 @@ function mkmenu() {
             label: '主页',
             accelerator: 'F1',
             click: () => {
-                shell.openExternal('https://github.com/kagurazakayashi/NyarukoTools')
+                shell.openExternal('https://github.com/kagurazakayashi/NyarukoTools/tree/master/NyarukoTimer')
             }
         },{
             label: '关于',
@@ -290,7 +291,9 @@ ipcMain.on('msgboxWinEdit', (event, arg) => {
     dialog.showMessageBox(winEdit,arg,function(){})
 })
 ipcMain.on('msgboxWin', (event, arg) => {
-    dialog.showMessageBox(win,arg,function(){})
+    dialog.showMessageBox(win,arg[0],function(index){
+        win.webContents.send('informationDialogSelection', [1,index,arg[1]]);
+    })
 })
 // 當 Electron 完成初始化，並且準備好建立瀏覽器視窗時
 // 會呼叫這的方法

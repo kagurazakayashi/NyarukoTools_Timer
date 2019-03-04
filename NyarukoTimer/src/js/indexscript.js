@@ -4,7 +4,7 @@ const url = require('url');
 //[[timei,mode,fromTimestamp,toTimestamp,title,display]]
 //mode: 0停止 1正计时 2正计时暂停 3倒计时 4倒计时暂停 5计时结束 6倒计时结束
 var timerdata = new Array();
-var maintimer = self.setInterval("maintimerfunc()",1000);
+var maintimer = self.setInterval("maintimerfunc()",500);
 const timerbox = $("#timerbox");
 const nonum = ["00","00","00"];
 var celltemplate = timerbox.html();
@@ -47,11 +47,18 @@ ipcRenderer.on('indexmenu', (event, arg) => {
             break;
     }
 })
+ipcRenderer.on('informationDialogSelection', (event, arg) => {
+    if (arg[0] == 1 && arg[1] == 1) {
+        cbtnDelete(arg[2]);
+    }
+})
 function taskAdd(day,hours,minutes,seconds,title,mode) {
     let milliseconds = time2seconds(day,hours,minutes,seconds) * 1000;
     let fromTimestamp = new Date().getTime();
     let toTimestamp = fromTimestamp + milliseconds;
-    let newdata = [0,mode,fromTimestamp,toTimestamp,title,nonum,[day,hours,minutes,seconds]];
+    var starttimei = 0;
+    if (mode == 3 || mode == 4) starttimei = 1000;
+    let newdata = [starttimei,mode,fromTimestamp,toTimestamp,title,nonum,[day,hours,minutes,seconds]];
     if (editingitem >= 0) {
         timerdata[editingitem] = newdata;
         editingitem = -1;
@@ -68,37 +75,43 @@ function maintimerfunc() {
     for (let taski = 0; taski < timerdata.length; taski++) {
         let nowtask = timerdata[taski];
         var timei = nowtask[0];
-        var mode = nowtask[1];
+        var nowmode = nowtask[1];
+        let nowTimestamp = new Date().getTime();
         let fromTimestamp = nowtask[2];
         let toTimestamp = nowtask[3];
         let title = nowtask[4];
         var display = nowtask[5];
         var timeoption = nowtask[6];
-        if (mode == 1 || mode == 3) {
-            timei += 1000; //TODO:失真优化
+        
+        if (nowmode == 1 || nowmode == 3) {
+            timei = nowTimestamp - fromTimestamp;
             timernum++;
         }
-        if (mode == 3) {
+        if (nowmode == 3) {
             var nowtime = toTimestamp - fromTimestamp - timei;
             if (nowtime <= 0) {
                 nowtime = 0;
-                mode = 6;
-                $("#timerinfob_"+taski).text("倒计时结束");
-                overalert("倒计时结束提醒",title+" 倒计时完毕！");
+                if (nowmode != 6) {
+                    nowmode = 6;
+                    $("#timerinfob_"+taski).text("倒计时结束"+nowTimestamp);
+                    overalert(taski,"倒计时结束提醒",title+" 倒计时完毕！");
+                }
             }
             display = seconds2time2display(nowtime / 1000);
         }
-        if (mode == 1) {
+        if (nowmode == 1) {
             let nowTimestamp = fromTimestamp + timei;
             if (nowTimestamp >= toTimestamp) {
                 timei = toTimestamp - fromTimestamp;
-                mode = 5;
-                $("#timerinfob_"+taski).text("计时结束");
-                overalert("计时结束提醒",title+" 达到预定时间！");
+                if (nowmode != 5) {
+                    nowmode = 5;
+                    $("#timerinfob_"+taski).text("计时结束"+nowTimestamp);
+                    overalert(taski,"计时结束提醒",title+" 达到预定时间！");
+                }
             }
             display = seconds2time2display(timei / 1000);
         }
-        let newtimerdataitem = [timei,mode,fromTimestamp,toTimestamp,title,display,timeoption];
+        let newtimerdataitem = [timei,nowmode,fromTimestamp,toTimestamp,title,display,timeoption];
         timerdata[taski] = newtimerdataitem;
         $("#timertimeh_"+taski).text(display[0]);
         $("#timertimem_"+taski).text(display[1]);
@@ -106,15 +119,27 @@ function maintimerfunc() {
     }
     document.title = "计时器 (运行中: " + timernum + " , 总计: " + timerdata.length + " )";
 }
-function overalert(title,message) {
+function overalert(taski,title,message) {
     if (showalert) {
         const options = {
             type: "warning",
             title: title,
-            buttons: ['返回'],
+            buttons: ['返回','删除此计时器'],
             message: message
         }
-        ipcRenderer.send('msgboxWin',options);
+        ipcRenderer.send('msgboxWin',[options,taski]);
+    }
+}
+function overalertsys(title,message) {
+    const notification = {
+        title: title,
+        body: message
+    }
+    // icon: "../static/hhw.ico",
+    // href: '.html'
+    const sysNotification = new window.Notification(notification.title, notification);
+    sysNotification.onclick = () => {
+        console.log('Notification clicked');
     }
 }
 function createallcell() {
@@ -166,6 +191,7 @@ function createallcell() {
         newhtml += cellhtml;
     }
     timerbox.html(newhtml);
+    maintimerfunc();
 }
 function selectcell(timerid) {
     $(".timer").attr("class","timer");
@@ -199,6 +225,7 @@ function cbtnEdit(timerid) {
 function cbtnReset(timerid) {
     let edarr = editresetbtndata(timerid);
     taskAdd(edarr[0],edarr[1],edarr[2],edarr[3],edarr[4],edarr[5]);
+    maintimerfunc();
 }
 function cbtnDelete(timerid) {
     timerdata.splice(timerid, 1);

@@ -27,7 +27,7 @@ function saveclosewindow() {
         const options = {
             type: 'error',
             title: '输入有误',
-            buttons: ['知道了'],
+            buttons: ['重新设定'],
             message: '请设置一个时间。'
         }
         ipcRenderer.send('msgboxWinEdit',options);

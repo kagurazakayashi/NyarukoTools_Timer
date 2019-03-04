@@ -34,11 +34,13 @@ function seconds2time(totalseconds=0) {
 }
 function seconds2time2display(totalseconds=0) {
     let nowtimert = seconds2time(totalseconds);
-    var hours = nowtimert[0] * 24 + nowtimert[1];
+    let cminutes = parseInt(nowtimert[2]);
+    let cseconds = parseInt(nowtimert[3]);
+    var hours = parseInt(nowtimert[0] * 24 + nowtimert[1]);
     if (hours < 10) hours = "0" + hours;
-    let minutes = nowtimert[2] < 10 ? "0" + nowtimert[2] : nowtimert[2];
-    let seconds = nowtimert[3] < 10 ? "0" + nowtimert[3] : nowtimert[3];
-    return [hours,minutes,seconds];
+    let minutes = cminutes < 10 ? "0" + cminutes : cminutes;
+    let seconds = cseconds < 10 ? "0" + cseconds : cseconds;
+    return [hours.toString(),minutes.toString(),seconds.toString()];
 }
 function timestamp2date(timestamp) {
     let date = new Date(timestamp);
