@@ -1,0 +1,12 @@
+body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+#colordiv {
+    position: absolute;
+    left: 0;
+    top: 0;
+    left: 0;
+    right: 0;
+}

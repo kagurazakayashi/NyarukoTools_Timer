@@ -82,7 +82,6 @@ function maintimerfunc() {
         let title = nowtask[4];
         var display = nowtask[5];
         var timeoption = nowtask[6];
-        
         if (nowmode == 1 || nowmode == 3) {
             timei = nowTimestamp - fromTimestamp;
             timernum++;
