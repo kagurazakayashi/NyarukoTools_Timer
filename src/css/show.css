@@ -7,9 +7,9 @@ body {
     position: fixed;
     left: 0;
     right: 0;
-    top: calc(50% - 25px);
+    top: calc(50% - 50px);
     bottom: 0;
-    font-size: 50px;
+    font-size: 100px;
     display: block;
     text-align: center;
 }

@@ -1,28 +1,93 @@
-const {ipcRenderer} = require('electron');
+const {ipcRenderer,remote} = require('electron');
 const path = require('path');
 const url = require('url');
+const fs = require('fs');
 //[[timei,mode,fromTimestamp,toTimestamp,title,display]]
 //mode: 0停止 1正计时 2正计时暂停 3倒计时 4倒计时暂停 5计时结束 6倒计时结束
 var timerdata = new Array();
-var maintimer = self.setInterval("maintimerfunc()",500);
+var maintimer;
 const timerbox = $("#timerbox");
 const nonum = ["00","00","00"];
+var showcolor = [0,"#000000","#EFEFF0","#FFFFFF"];
 var celltemplate = timerbox.html();
 var editingitem = -1;
 var selectedcell = -1;
+var showing = -1;
 var showalert = true;
+let configFile = remote.app.getPath('userData') + "/setting.json";
+//C:\Users\yashi\AppData\Roaming\nyarukotimer\setting.json
 timerbox.empty();
-
-function createWindowEdit() {
-    $("#nouse").css("display","block");
-    ipcRenderer.send('openWinEdit');
+$(document).ready(function() {
+    settingLoad();
+    maintimer = self.setInterval("maintimerfunc()",500);
+});
+function settingLoad() {
+    fs.readFile(configFile, 'utf8', function (err, filedata) {
+        if (err) {
+            if (err.code != "ENOENT") {
+                const options = {
+                    type: "error",
+                    title: "读取应用程序设置没有成功",
+                    message: err.message,
+                    buttons: ['关闭']
+                }
+                console.log(err.code + "|" + err.message);
+                ipcRenderer.send('openInfoMsgBox',options);
+            }
+        } else {
+            let settingarr = JSON.parse(filedata);
+            console.log("settingarr",settingarr);
+            showcolor = settingarr[0];
+            timerdata = settingarr[1];
+            ipcRenderer.send('updateShowColor',showcolor);
+            createallcell();
+        }
+    });
 }
+function settingSave() {
+    let filedata = JSON.stringify([showcolor,timerdata]);
+    console.log("filedata",filedata);
+    
+    fs.writeFile(configFile, filedata, function (err) {
+        if (err) {
+            const options = {
+                type: "error",
+                title: "写入应用程序设置没有成功",
+                message: err.message,
+                buttons: ['关闭']
+            }
+            console.log(err.code + "|" + err.message);
+            ipcRenderer.send('openInfoMsgBox',options);
+        } else {
+            console.log("fileok");
+        }
+    })
+}
+function createWindowEdit() {
+    let maxtasknum = 1;
+    if (timerdata.length >= 64) {
+        const options = {
+            type: "error",
+            title: "创建的计时任务太多了",
+            message: ("最多可以容纳 "+maxtasknum+" 个任务，请删除一些再添加。"),
+            buttons: ['取消']
+        }
+        ipcRenderer.send('openInfoMsgBox',options);
+    } else {
+        $("#nouse").css("display","block");
+        ipcRenderer.send('openWinEdit');
+    }
+}
+ipcRenderer.on('didFinishLoad', (event, arg) => {
+    
+});
 ipcRenderer.on('msgWinEdit', (event, arg) => {
     $("#nouse").css("display","none");
     if (arg[0] == 1) {
         taskAdd(arg[1],arg[2],arg[3],arg[4],arg[5],arg[6]);
+        settingSave();
     }
-})
+});
 ipcRenderer.on('indexmenu', (event, arg) => {
     switch (arg) {
         case 0:
@@ -46,12 +111,15 @@ ipcRenderer.on('indexmenu', (event, arg) => {
         default:
             break;
     }
-})
+});
 ipcRenderer.on('informationDialogSelection', (event, arg) => {
     if (arg[0] == 1 && arg[1] == 1) {
         cbtnDelete(arg[2]);
     }
-})
+});
+ipcRenderer.on('changeShowColor', (event, arg) => {
+    showcolor = arg;
+});
 function taskAdd(day,hours,minutes,seconds,title,mode) {
     let milliseconds = time2seconds(day,hours,minutes,seconds) * 1000;
     let fromTimestamp = new Date().getTime();
@@ -66,6 +134,7 @@ function taskAdd(day,hours,minutes,seconds,title,mode) {
         timerdata.push(newdata);
     }
     createallcell();
+    updateshow(timerdata.length-1);
 }
 function taskDel(dataindex) {
     let delobj = timerdata.splice(dataindex,1);
@@ -201,7 +270,13 @@ function cbtnPause(timerid) {
 
 }
 function cbtnShow(timerid) {
-
+    showing = timerid;
+    ipcRenderer.send('openWinShow',timerdata[timerid]);
+}
+function updateshow(timerid) {
+    if (showing == timerid) {
+        ipcRenderer.send('openWinShow',timerdata[timerid]);
+    }
 }
 function editresetbtndata(timerid) {
     let nowdata = timerdata[timerid];
@@ -220,20 +295,29 @@ function editresetbtndata(timerid) {
 function cbtnEdit(timerid) {
     $("#nouse").css("display","block");
     ipcRenderer.send('openWinEdit',editresetbtndata(timerid));
+    settingSave();
 }
 function cbtnReset(timerid) {
     let edarr = editresetbtndata(timerid);
     taskAdd(edarr[0],edarr[1],edarr[2],edarr[3],edarr[4],edarr[5]);
     maintimerfunc();
+    updateshow(timerid);
+    settingSave();
 }
 function cbtnDelete(timerid) {
     timerdata.splice(timerid, 1);
+    if (showing == timerid) {
+        ipcRenderer.send('closeWinShow');
+    }
     createallcell();
+    settingSave();
 }
 function cbtnDeleteAll() {
     let timerdatalength = timerdata.length;
     if (timerdatalength > 0) {
         timerdata.splice(0,timerdata.length);
+        ipcRenderer.send('closeWinShow');
         createallcell();
+        settingSave();
     }
 }

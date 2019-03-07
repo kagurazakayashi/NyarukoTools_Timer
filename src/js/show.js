@@ -1,6 +1,9 @@
 const {ipcRenderer} = require('electron');
 var timerdata = new Array();
-var maintimer = self.setInterval("maintimerfunc()",500);
+var maintimer;
+$(document).ready(function() {
+    maintimer = self.setInterval("maintimerfunc()",500);
+});
 function maintimerfunc() {
     if (timerdata.length < 7) return;
     let nowtask = timerdata;
@@ -41,6 +44,12 @@ function maintimerfunc() {
     $("#timertimem_0").text(display[1]);
     $("#timertimes_0").text(display[2]);
 }
-function taskAdd(dataarr) {
-    timerdata = dataarr;
-}
+ipcRenderer.on('winshowinit', (event, arg) => {
+    timerdata = arg;
+});
+ipcRenderer.on('changeShowColor', (event, arg) => {
+    let pagebody = $("body");
+    pagebody.css("color",arg[1]);
+    pagebody.css("background-color",arg[2]);
+    pagebody.css("-webkit-text-stroke","1px "+arg[3]);
+});

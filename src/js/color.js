@@ -35,4 +35,4 @@ ipcRenderer.on('wincolorinit', (event, arg) => {
     } else {
         colordiv.html("参数错误");
     }
-})
+});

@@ -3,14 +3,13 @@ const path = require('path');
 const url = require('url');
 app.disableHardwareAcceleration();
 
-// 將這個 window 物件記在全域變數裡。
-// 如果沒這麼做，這個視窗在 JavaScript 物件被垃圾回收時（GC）後就會被自動關閉。
 let win;
 let menu;
 let winEdit;
 let winShow;
 let winColor;
-var showcolor = [0,"#000000","#FFFFFF"];
+var showcolor = [0,"#000000","#EFEFF0","#FFFFFF"];
+var firstload = true;
 
 function close() {
     console.log("EEEEE");
@@ -82,14 +81,21 @@ function mkmenu() {
             label: '默认颜色',
             accelerator: 'CmdOrCtrl+Alt+D',
             click: (item,focusedWindow) => {
-                showcolor = [0,"#000000","#EFEFF0"];
+                showcolor = [0,"#000000","#EFEFF0","#FFFFFF"];
+                if (focusedWindow && winShow) {
+                    winShow.webContents.send('changeShowColor', showcolor);
+                    win.webContents.send('changeShowColor', showcolor);
+                }
             }
         },{
             label: '绿色(色度键)',
             accelerator: 'CmdOrCtrl+Alt+G',
             click: (item,focusedWindow) => {
-                showcolor = [0,"#FFFFFF","#00FF00"];
-                // if (focusedWindow) win.webContents.send('indexmenu', 51);
+                showcolor = [0,"#FFFFFF","#00FF00","#000000"];
+                if (focusedWindow && winShow) {
+                    winShow.webContents.send('changeShowColor', showcolor);
+                    win.webContents.send('changeShowColor', showcolor);
+                }
             }
         },{
             type: 'separator'
@@ -106,6 +112,13 @@ function mkmenu() {
             click: (item,focusedWindow) => {
                 showcolor[0] = 2;
                 createWindowColor(showcolor[2]);
+            }
+        },{
+            label: '自定义数字描边色',
+            accelerator: 'CmdOrCtrl+Alt+R',
+            click: (item,focusedWindow) => {
+                showcolor[0] = 3;
+                createWindowColor(showcolor[3]);
             }
         }]
     },{
@@ -149,7 +162,7 @@ function mkmenu() {
             label: '主页',
             accelerator: 'F1',
             click: () => {
-                shell.openExternal('https://github.com/kagurazakayashi/NyarukoTools/tree/master/NyarukoTimer');
+                shell.openExternal('https://github.com/kagurazakayashi/NyarukoTools_Timer');
             }
         },{
             label: '关于',
@@ -170,10 +183,8 @@ function mkmenu() {
 }
 function createWindow () {
     mkmenu();
-
-    // 建立瀏覽器視窗。
     win = new BrowserWindow({
-        width: 1200, 
+        width: 800, 
         height: 600,
         title: '计时器',
         backgroundColor: '#EFEFF0',
@@ -183,31 +194,37 @@ function createWindow () {
         }
     })
     win.setMenu(menu);
-
-    // 並載入應用程式的 index.html。
     win.loadURL(url.format({
         pathname: path.join(__dirname, 'index.html'),
         protocol: 'file:',
         slashes: true
     }))
-
-    // 打開 DevTools。
-    win.webContents.openDevTools();
-
-    // 視窗關閉時會觸發。
+    // win.webContents.openDevTools();
+    win.webContents.on('did-finish-load', () => {
+        win.webContents.send('didFinishLoad');
+        if (firstload) {
+            win.reload();
+            firstload = false;
+        }
+    });
     win.on('closed', () => {
-        // 拿掉 window 物件的參照。如果你的應用程式支援多個視窗，
-        // 你可能會將它們存成陣列，現在該是時候清除相關的物件了。
-        win = null
+        BrowserWindow.getAllWindows().forEach(win => {
+            win.close();
+        });
+        win = null;
+        app.quit();
     })
-    createWindowShow();
 }
-function createWindowShow() {
+function createWindowShow(showdata) {
+    if (winShow) {
+        winShow.webContents.send('winshowinit', showdata);
+        return;
+    }
     winShow = new BrowserWindow({
         width: 800, 
-        height: 600,
+        height: 300,
         backgroundColor: ('#'+showcolor[2]),
-        title: '展示画面',
+        title: 'NyarukoTools:Timer:Slide',
         backgroundThrottling: false,
         webPreferences:{
             nodeIntegration: true
@@ -219,10 +236,18 @@ function createWindowShow() {
         protocol: 'file:',
         slashes: true
     }))
-    winShow.webContents.openDevTools();
+    // winShow.webContents.openDevTools();
+    winShow.webContents.on('did-finish-load', () => {
+        winShow.webContents.send('changeShowColor', showcolor);win.webContents.send('changeShowColor', showcolor);
+        winShow.webContents.send('winshowinit', showdata);
+    });
     winShow.on('closed', () => {
-        winShow = null
-    })
+        ipcMain.removeAllListeners('closeWinShow');
+        winShow = null;
+    });
+    ipcMain.on('closeWinShow', (event, arg) => {
+        winShow.close();
+    });
 }
 function createWindowColor(nowcolor) {
     winColor = new BrowserWindow({
@@ -258,7 +283,10 @@ function createWindowColor(nowcolor) {
     ipcMain.on('closeWinColor', (event, arg) => {
         if (arg[0] == 1) {
             showcolor[showcolor[0]] = arg[1];
-            if (winShow) winShow.webContents.send('changeShowColor', showcolor);
+            if (winShow) {
+                winShow.webContents.send('changeShowColor', showcolor);
+                win.webContents.send('changeShowColor', showcolor);
+            }
         }
         winColor.close();
     });
@@ -312,28 +340,25 @@ ipcMain.on('msgboxWin', (event, arg) => {
         win.webContents.send('informationDialogSelection', [1,index,arg[1]]);
     });
 });
-// 當 Electron 完成初始化，並且準備好建立瀏覽器視窗時
-// 會呼叫這的方法
-// 有些 API 只能在這個事件發生後才能用。
+ipcMain.on('openWinShow', (event, arg) => {
+    createWindowShow(arg);
+});
+ipcMain.on('openInfoMsgBox', (event, arg) => {
+    dialog.showMessageBox(win,arg);
+});
+ipcMain.on('updateShowColor', (event, arg) => {
+    showcolor = arg;
+});
 app.on('ready', createWindow);
-
-// 在所有視窗都關閉時結束程式。
 app.on('window-all-closed', () => {
-// 在 macOS 中，一般會讓應用程式及選單列繼續留著，
-// 除非使用者按了 Cmd + Q 確定終止它們
-if (process.platform !== 'darwin') {
-    app.quit();
-}
+    // if (process.platform !== 'darwin') {
+        app.quit();
+    // }
 });
 
 app.on('activate', () => {
-// 在 macOS 中，一般會在使用者按了 Dock 圖示
-// 且沒有其他視窗開啟的情況下，
-// 重新在應用程式裡建立視窗。
 if (win === null) {
     createWindow();
 }
 });
 process.env['ELECTRON_DISABLE_SECURITY_WARNINGS'] = 'true';
-// 你可以在這個檔案中繼續寫應用程式主程序要執行的程式碼。 
-// 你也可以將它們放在別的檔案裡，再由這裡 require 進來。
