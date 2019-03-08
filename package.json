@@ -1,18 +1,23 @@
 {
   "name": "nyarukotimer",
-  "productName": "nyarukotimer",
+  "productName": "NyarukoTimer",
   "version": "1.0.0",
-  "description": "My Electron application description",
+  "description": "小巧的计时器工具，提供双向多项计时，支持视频直播色度键。",
   "main": "src/index.js",
   "scripts": {
-    "start": "electron-forge start",
-    "package": "electron-forge package",
+    "start": "electron .",
+    "dev": "electron . --debug",
+    "package": "npm-run-all package:*",
+    "package:mac": "electron-packager . --overwrite --platform=darwin --arch=x64 --out=release --icon=assets/app.icns",
+    "package:win": "electron-packager . --overwrite --platform=win32 --arch=ia32 --out=release --icon=assets/app.ico",
+    "package:linux": "electron-packager . --overwrite --platform=linux --arch=x64 --out=release --icon=assets/app.png",
     "make": "electron-forge make",
     "publish": "electron-forge publish",
     "lint": "eslint src --color"
   },
+  "repository": "https://github.com/kagurazakayashi/NyarukoTools_Timer",
   "keywords": [],
-  "author": "yashi",
+  "author": "KagurazakaYashi",
   "license": "MIT",
   "config": {
     "forge": {
@@ -39,11 +44,11 @@
       "electronInstallerDebian": {},
       "electronInstallerRedhat": {},
       "github_repository": {
-        "owner": "",
-        "name": ""
+        "owner": "kagurazakayashi",
+        "name": "NyarukoTools_Timer"
       },
       "windowsStoreConfig": {
-        "packageName": "",
+        "packageName": "nyarukolivetimer",
         "name": "nyarukolivetimer"
       }
     }

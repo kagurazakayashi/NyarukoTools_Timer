@@ -3,7 +3,7 @@ const path = require('path');
 const url = require('url');
 const fs = require('fs');
 //[[timei,mode,fromTimestamp,toTimestamp,title,display]]
-//mode: 0停止 1正计时 2正计时暂停 3倒计时 4倒计时暂停 5计时结束 6倒计时结束
+//mode: 0停止 1正计时 2正计时暂停 3倒计时 4倒计时暂停 5计时结束 6倒计时结束 7显示时间
 var timerdata = new Array();
 var maintimer;
 const timerbox = $("#timerbox");
@@ -17,10 +17,7 @@ var showalert = true;
 let configFile = remote.app.getPath('userData') + "/setting.json";
 //C:\Users\yashi\AppData\Roaming\nyarukotimer\setting.json
 timerbox.empty();
-$(document).ready(function() {
-    settingLoad();
-    maintimer = self.setInterval("maintimerfunc()",500);
-});
+timerbox.text("正在加载...");
 function settingLoad() {
     fs.readFile(configFile, 'utf8', function (err, filedata) {
         if (err) {
@@ -36,7 +33,6 @@ function settingLoad() {
             }
         } else {
             let settingarr = JSON.parse(filedata);
-            console.log("settingarr",settingarr);
             showcolor = settingarr[0];
             timerdata = settingarr[1];
             ipcRenderer.send('updateShowColor',showcolor);
@@ -46,8 +42,6 @@ function settingLoad() {
 }
 function settingSave() {
     let filedata = JSON.stringify([showcolor,timerdata]);
-    console.log("filedata",filedata);
-    
     fs.writeFile(configFile, filedata, function (err) {
         if (err) {
             const options = {
@@ -58,8 +52,6 @@ function settingSave() {
             }
             console.log(err.code + "|" + err.message);
             ipcRenderer.send('openInfoMsgBox',options);
-        } else {
-            console.log("fileok");
         }
     })
 }
@@ -79,7 +71,8 @@ function createWindowEdit() {
     }
 }
 ipcRenderer.on('didFinishLoad', (event, arg) => {
-    
+    settingLoad();
+    maintimer = self.setInterval("maintimerfunc()",500);
 });
 ipcRenderer.on('msgWinEdit', (event, arg) => {
     $("#nouse").css("display","none");
@@ -151,39 +144,43 @@ function maintimerfunc() {
         let title = nowtask[4];
         var display = nowtask[5];
         var timeoption = nowtask[6];
-        if (nowmode == 1 || nowmode == 3) {
-            timei = nowTimestamp - fromTimestamp;
-            timernum++;
-        }
-        if (nowmode == 3) {
-            var nowtime = toTimestamp - fromTimestamp - timei;
-            if (nowtime <= 0) {
-                nowtime = 0;
-                if (nowmode != 6) {
-                    nowmode = 6;
-                    $("#timerinfob_"+taski).text("倒计时结束"+nowTimestamp);
-                    overalert(taski,"倒计时结束提醒",title+" 倒计时完毕！");
-                }
+        if (nowmode == 7) {
+            display = nowtime2display();
+        } else {
+            if (nowmode == 1 || nowmode == 3) {
+                timei = nowTimestamp - fromTimestamp;
+                timernum++;
             }
-            display = seconds2time2display(nowtime / 1000);
-        }
-        if (nowmode == 1) {
-            let nowTimestamp = fromTimestamp + timei;
-            if (nowTimestamp >= toTimestamp) {
-                timei = toTimestamp - fromTimestamp;
-                if (nowmode != 5) {
-                    nowmode = 5;
-                    $("#timerinfob_"+taski).text("计时结束"+nowTimestamp);
-                    overalert(taski,"计时结束提醒",title+" 达到预定时间！");
+            if (nowmode == 3) {
+                var nowtime = toTimestamp - fromTimestamp - timei;
+                if (nowtime <= 0) {
+                    nowtime = 0;
+                    if (nowmode != 6) {
+                        nowmode = 6;
+                        $("#timerinfob_"+taski).text("倒计时结束"+nowTimestamp);
+                        overalert(taski,"倒计时结束提醒",title+" 倒计时完毕！");
+                    }
                 }
+                display = seconds2time2display(nowtime / 1000);
             }
-            display = seconds2time2display(timei / 1000);
+            if (nowmode == 1) {
+                let nowTimestamp = fromTimestamp + timei;
+                if (nowTimestamp >= toTimestamp) {
+                    timei = toTimestamp - fromTimestamp;
+                    if (nowmode != 5) {
+                        nowmode = 5;
+                        $("#timerinfob_"+taski).text("计时结束"+nowTimestamp);
+                        overalert(taski,"计时结束提醒",title+" 达到预定时间！");
+                    }
+                }
+                display = seconds2time2display(timei / 1000);
+            }
         }
         let newtimerdataitem = [timei,nowmode,fromTimestamp,toTimestamp,title,display,timeoption];
         timerdata[taski] = newtimerdataitem;
-        $("#timertimeh_"+taski).text(display[0]);
-        $("#timertimem_"+taski).text(display[1]);
-        $("#timertimes_"+taski).text(display[2]);
+        $("#timertimeh_"+taski).html(timertimenumchar(display[0]));
+        $("#timertimem_"+taski).html(timertimenumchar(display[1]));
+        $("#timertimes_"+taski).html(timertimenumchar(display[2]));
     }
     document.title = "计时器 (运行中: " + timernum + " , 总计: " + timerdata.length + " )";
 }
@@ -216,9 +213,9 @@ function createallcell() {
     let newhtml = "";
     for (let taski = 0; taski < timerdata.length; taski++) {
         let nowtask = timerdata[taski];
-        let starttime = timestamp2date2display(nowtask[2]);
-        let endtime = timestamp2date2display(nowtask[3]);
         var nowmode = nowtask[1];
+        let starttime = timestamp2date2display(nowtask[2]);
+        let endtime = (nowmode == 7) ? "无" : timestamp2date2display(nowtask[3]);
         var nowmodestr = "";
         let pausestr = (nowmode == 1 || nowmode == 3) ? "暂停" : "继续";
         let isstartbtn = (nowmode == 1 || nowmode == 3) ? "false" : "true";
@@ -241,19 +238,22 @@ function createallcell() {
             case 6:
                 nowmodestr = "倒计时结束";
                 break;
+            case 7:
+                nowmodestr = "当前时间";
+                break;
             default:
                 nowmodestr = "程序中止";
                 break;
         }
         let nowdisplay = nowtask[5];
-        var cellhtml = celltemplate.replace(/StimeridS/g, taski);
-        cellhtml = cellhtml.replace(/StitleS/g, nowtask[4]);
-        cellhtml = cellhtml.replace(/StimehS/g, nowdisplay[0]);
-        cellhtml = cellhtml.replace(/StimemS/g, nowdisplay[1]);
-        cellhtml = cellhtml.replace(/StimesS/g, nowdisplay[2]);
-        cellhtml = cellhtml.replace(/SmodeS/g, nowmodestr);
-        cellhtml = cellhtml.replace(/SstarttimeS/g, starttime);
-        cellhtml = cellhtml.replace(/SendtimeS/g, endtime);
+        var cellhtml = celltemplate.replace(/VARtimeridVAR/g, taski);
+        cellhtml = cellhtml.replace(/VARtitleVAR/g, nowtask[4]);
+        cellhtml = cellhtml.replace(/VARtimehVAR/g, nowdisplay[0]);
+        cellhtml = cellhtml.replace(/VARtimemVAR/g, nowdisplay[1]);
+        cellhtml = cellhtml.replace(/VARtimesVAR/g, nowdisplay[2]);
+        cellhtml = cellhtml.replace(/VARmodeVAR/g, nowmodestr);
+        cellhtml = cellhtml.replace(/VARstarttimeVAR/g, starttime);
+        cellhtml = cellhtml.replace(/VARendtimeVAR/g, endtime);
         cellhtml = cellhtml.replace(/SplaybtnstrS/g, pausestr);
         cellhtml = cellhtml.replace(/SisstartbtnS/g, isstartbtn);
         newhtml += cellhtml;
@@ -285,7 +285,7 @@ function editresetbtndata(timerid) {
     var nowmode = nowdata[1];
     if (nowmode == 1 || nowmode == 2) {
         nowmode = 1;
-    } else {
+    } else if (nowmode == 3 || nowmode == 4) {
         nowmode = 3;
     }
     timeoption.push(nowmode);
