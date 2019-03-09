@@ -18,12 +18,25 @@ function saveclosewindow() {
     let seconds = parseInt($("#seltimes").val());
     let textnote = $("#textnote");
     let title = textnote.val();
-    let ctime = creCurDateTime();
+    let modeselid = parseInt($("#modesel").val());
+    var ctime;
+    switch (modeselid) {
+        case 3:
+        case 4:
+            ctime = creCurDateTime("倒计时");
+            break;
+        case 7:
+            ctime = "系统时间";
+            break;
+        default:
+            ctime = creCurDateTime();
+            break;
+    }
     if (title == "") {
         textnote.attr("value",ctime);
         title = ctime;
     }
-    if ((days + hours + minutes + seconds) == 0) {
+    if (modeselid != 7 && (days + hours + minutes + seconds) == 0) {
         const options = {
             type: 'error',
             title: '输入有误',
@@ -32,30 +45,30 @@ function saveclosewindow() {
         }
         ipcRenderer.send('msgboxWinEdit',options);
     } else {
-        let modeselid = parseInt($("#modesel").val());
         ipcRenderer.send('closeWinEdit',[1,days,hours,minutes,seconds,title,modeselid]);
     }
 }
-function creCurDateTime() {
-    return "未命名计时器 " + curDateTimeString();
+function creCurDateTime(modestr="计时器") {
+    return "未命名" + modestr + curDateTimeString();
 }
 function settitle(ctime=null) {
     if (ctime == null) ctime = creCurDateTime();
     $("#textnote").attr("value",ctime);
     document.title = ctime;
 }
-settitle();
+// settitle();
 addnumoption("seltimed",365);
 addnumoption("seltimeh",23);
 addnumoption("seltimem",59);
 addnumoption("seltimes",59);
 ipcRenderer.on('wineditinit', (event, arg) => {
     if (arg) {
-        $("#seltimed #opt"+arg[0]).attr("selected","selected");
-        $("#seltimeh #opt"+arg[1]).attr("selected","selected");
-        $("#seltimem #opt"+arg[2]).attr("selected","selected");
-        $("#seltimes #opt"+arg[3]).attr("selected","selected");
+        $("option").attr("selected",false);
+        $("#seltimed #opt"+arg[0]).attr("selected",true);
+        $("#seltimeh #opt"+arg[1]).attr("selected",true);
+        $("#seltimem #opt"+arg[2]).attr("selected",true);
+        $("#seltimes #opt"+arg[3]).attr("selected",true);
         settitle(arg[4]);
-        $("#modesel #modesel"+arg[5]).attr("selected","selected");
+        $("#modesel #modesel"+arg[5]).attr("selected",true);
     }
 })

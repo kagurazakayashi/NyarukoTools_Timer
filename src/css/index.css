@@ -7,13 +7,19 @@
     background-color: #FFF;
 }
 .timertime {
-    font-size: 50px;
-    width: 270px;
+    font-size: 60px;
     display: inline-block;
 }
 .timertimenum {
     font-family: "display";
     font-variant-numeric: lining-nums;
+}
+.timertimenumchar {
+    width: 40px;
+    height: 100%;
+    text-align: right;
+    display: inline-block;
+    background-color: #FFF;
 }
 .timerinfobox {
     display: inline-block;

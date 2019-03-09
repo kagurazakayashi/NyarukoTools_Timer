@@ -10,9 +10,10 @@ let winShow;
 let winColor;
 var showcolor = [0,"#000000","#EFEFF0","#FFFFFF"];
 var firstload = true;
+const devmode = false;
 
 function close() {
-    console.log("EEEEE");
+    console.log("close");
 }
 function mkmenu() {
     const version = app.getVersion();
@@ -180,6 +181,7 @@ function mkmenu() {
         }]
     }]
     menu = Menu.buildFromTemplate(menutmp);
+    Menu.setApplicationMenu(menu);
 }
 function createWindow () {
     mkmenu();
@@ -199,12 +201,13 @@ function createWindow () {
         protocol: 'file:',
         slashes: true
     }))
-    // win.webContents.openDevTools();
+    if (devmode) win.webContents.openDevTools();
     win.webContents.on('did-finish-load', () => {
-        win.webContents.send('didFinishLoad');
         if (firstload) {
-            win.reload();
             firstload = false;
+            win.reload();
+        } else {
+            win.webContents.send('didFinishLoad',firstload);
         }
     });
     win.on('closed', () => {
@@ -236,7 +239,7 @@ function createWindowShow(showdata) {
         protocol: 'file:',
         slashes: true
     }))
-    // winShow.webContents.openDevTools();
+    if (devmode) winShow.webContents.openDevTools();
     winShow.webContents.on('did-finish-load', () => {
         winShow.webContents.send('changeShowColor', showcolor);win.webContents.send('changeShowColor', showcolor);
         winShow.webContents.send('winshowinit', showdata);
@@ -272,7 +275,7 @@ function createWindowColor(nowcolor) {
         protocol: 'file:',
         slashes: true
     }))
-    // winColor.webContents.openDevTools();
+    if (devmode) winColor.webContents.openDevTools();
     winColor.webContents.on('did-finish-load', () => {
         winColor.webContents.send('wincolorinit', nowcolor);
     });
@@ -314,7 +317,7 @@ function createWindowEdit(editarg) {
         protocol: 'file:',
         slashes: true
     }));
-    // winEdit.webContents.openDevTools()
+    if (devmode) winEdit.webContents.openDevTools()
     winEdit.on('closed', () => {
         win.webContents.send('msgWinEdit', [0]);
         ipcMain.removeAllListeners('closeWinEdit');
