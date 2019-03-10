@@ -6,6 +6,7 @@ const fs = require('fs');
 //mode: 0停止 1正计时 2正计时暂停 3倒计时 4倒计时暂停 5计时结束 6倒计时结束 7显示时间
 var timerdata = new Array();
 var maintimer;
+var inittimer;
 const timerbox = $("#timerbox");
 const nonum = ["00","00","00"];
 var showcolor = [0,"#000000","#EFEFF0","#FFFFFF"];
@@ -18,8 +19,8 @@ let configFile = remote.app.getPath('userData') + "/setting.json";
 //C:\Users\yashi\AppData\Roaming\nyarukotimer\setting.json
 timerbox.empty();
 timerbox.text("正在加载...");
-function settingLoad() {
-    fs.readFile(configFile, 'utf8', function (err, filedata) {
+function settingLoad(file=configFile,saveto=null) {
+    fs.readFile(file, 'utf8', function (err, filedata) {
         if (err) {
             if (err.code != "ENOENT") {
                 const options = {
@@ -31,18 +32,36 @@ function settingLoad() {
                 console.log(err.code + "|" + err.message);
                 ipcRenderer.send('openInfoMsgBox',options);
             }
-        } else {
+        } else if (saveto == null) {
             let settingarr = JSON.parse(filedata);
-            showcolor = settingarr[0];
-            timerdata = settingarr[1];
+            if (settingarr[0] != "nyarukotools_timer_1") {
+                const options = {
+                    type: "error",
+                    title: "配置文件版本不匹配",
+                    message: "这个配置文件是由其他软件或本软件的不兼容版本创建的，无法导入。",
+                    buttons: ['取消导入']
+                }
+                ipcRenderer.send('openInfoMsgBox',options);
+                return false;
+            }
+            showcolor = settingarr[1];
+            timerdata = settingarr[2];
             ipcRenderer.send('updateShowColor',showcolor);
             createallcell();
+            return true;
+        } else {
+            settingSave(saveto,filedata);
         }
     });
+    return false;
 }
-function settingSave() {
-    let filedata = JSON.stringify([showcolor,timerdata]);
-    fs.writeFile(configFile, filedata, function (err) {
+function settingLoadFrom(file) {
+    settingLoad(file,configFile);
+    settingLoad(file);
+}
+function settingSave(file=configFile,loaddata=null) {
+    let filedata = loaddata ? loaddata : JSON.stringify(["nyarukotools_timer_1",showcolor,timerdata]);
+    fs.writeFile(file, filedata, function (err) {
         if (err) {
             const options = {
                 type: "error",
@@ -52,8 +71,14 @@ function settingSave() {
             }
             console.log(err.code + "|" + err.message);
             ipcRenderer.send('openInfoMsgBox',options);
+        } else {
+            return true;
         }
-    })
+    });
+    return false;
+}
+function settingSaveTo(file) {
+    settingLoad(configFile,file);
 }
 function createWindowEdit() {
     let maxtasknum = 1;
@@ -70,9 +95,19 @@ function createWindowEdit() {
         ipcRenderer.send('openWinEdit');
     }
 }
+function inittimerfunc() {
+    let milliseconds = new Date().getMilliseconds();
+    if (milliseconds >= 0 && milliseconds < 100) {
+        clearInterval(inittimer);
+        inittimer = null;
+        $("body").css("display","block");
+        maintimer = self.setInterval("maintimerfunc()",100);
+    }
+}
 ipcRenderer.on('didFinishLoad', (event, arg) => {
     settingLoad();
-    maintimer = self.setInterval("maintimerfunc()",500);
+    inittimer = self.setInterval("inittimerfunc()",1);
+    // maintimer = self.setInterval("maintimerfunc()",100);
 });
 ipcRenderer.on('msgWinEdit', (event, arg) => {
     $("#nouse").css("display","none");
@@ -101,6 +136,8 @@ ipcRenderer.on('indexmenu', (event, arg) => {
         case 5:
             cbtnDeleteAll();
             break;
+        case 6:
+            showing = -1;
         default:
             break;
     }
@@ -113,10 +150,20 @@ ipcRenderer.on('informationDialogSelection', (event, arg) => {
 ipcRenderer.on('changeShowColor', (event, arg) => {
     showcolor = arg;
 });
+ipcRenderer.on('filedialogfb', (event, arg) => {
+    if (arg[0] == 1) {
+        settingLoadFrom(arg[1][0]);
+    } else if (arg[0] == 2) {
+        settingSaveTo(arg[1]);
+    }
+});
+function removemilliseconds(timestamp) {
+    return timestamp - new Date(timestamp).getMilliseconds();
+}
 function taskAdd(day,hours,minutes,seconds,title,mode) {
     let milliseconds = time2seconds(day,hours,minutes,seconds) * 1000;
-    let fromTimestamp = new Date().getTime();
-    let toTimestamp = fromTimestamp + milliseconds;
+    let fromTimestamp = removemilliseconds(new Date().getTime());
+    let toTimestamp = removemilliseconds(fromTimestamp + milliseconds);
     var starttimei = 0;
     if (mode == 3 || mode == 4) starttimei = 1000;
     let newdata = [starttimei,mode,fromTimestamp,toTimestamp,title,nonum,[day,hours,minutes,seconds]];
@@ -157,7 +204,7 @@ function maintimerfunc() {
                     nowtime = 0;
                     if (nowmode != 6) {
                         nowmode = 6;
-                        $("#timerinfob_"+taski).text("倒计时结束"+nowTimestamp);
+                        $("#timerinfob_"+taski).text("倒计时结束");
                         overalert(taski,"倒计时结束提醒",title+" 倒计时完毕！");
                     }
                 }
@@ -169,7 +216,7 @@ function maintimerfunc() {
                     timei = toTimestamp - fromTimestamp;
                     if (nowmode != 5) {
                         nowmode = 5;
-                        $("#timerinfob_"+taski).text("计时结束"+nowTimestamp);
+                        $("#timerinfob_"+taski).text("计时结束");
                         overalert(taski,"计时结束提醒",title+" 达到预定时间！");
                     }
                 }
@@ -178,9 +225,9 @@ function maintimerfunc() {
         }
         let newtimerdataitem = [timei,nowmode,fromTimestamp,toTimestamp,title,display,timeoption];
         timerdata[taski] = newtimerdataitem;
-        $("#timertimeh_"+taski).html(timertimenumchar(display[0]));
-        $("#timertimem_"+taski).html(timertimenumchar(display[1]));
-        $("#timertimes_"+taski).html(timertimenumchar(display[2]));
+        sethtml($("#timertimeh_"+taski),timertimenumchar(display[0]));
+        sethtml($("#timertimem_"+taski),timertimenumchar(display[1]));
+        sethtml($("#timertimes_"+taski),timertimenumchar(display[2]));
     }
     document.title = "计时器 (运行中: " + timernum + " , 总计: " + timerdata.length + " )";
 }
@@ -200,11 +247,8 @@ function overalertsys(title,message) {
         title: title,
         body: message
     }
-    // icon: "../static/hhw.ico",
-    // href: '.html'
     const sysNotification = new window.Notification(notification.title, notification);
     sysNotification.onclick = () => {
-        console.log('Notification clicked');
     }
 }
 function createallcell() {

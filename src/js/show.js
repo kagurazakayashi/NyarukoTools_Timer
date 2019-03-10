@@ -1,9 +1,20 @@
 const {ipcRenderer} = require('electron');
 var timerdata = new Array();
 var maintimer;
+var inittimer;
 $(document).ready(function() {
-    maintimer = self.setInterval("maintimerfunc()",500);
+    inittimer = self.setInterval("inittimerfunc()",1);
+    // maintimer = self.setInterval("maintimerfunc()",100);
 });
+function inittimerfunc() {
+    let milliseconds = new Date().getMilliseconds();
+    if (milliseconds >= 0 && milliseconds < 100) {
+        clearInterval(inittimer);
+        inittimer = null;
+        $("body").css("display","block");
+        maintimer = self.setInterval("maintimerfunc()",100);
+    }
+}
 function maintimerfunc() {
     if (timerdata.length < 7) return;
     let nowtask = timerdata;
@@ -44,9 +55,9 @@ function maintimerfunc() {
     }
     let newtimerdataitem = [timei,nowmode,fromTimestamp,toTimestamp,title,display,timeoption];
     timerdata = newtimerdataitem;
-    $("#timertimech_0").html(timertimenumchar(display[0]));
-    $("#timertimecm_0").html(timertimenumchar(display[1]));
-    $("#timertimecs_0").html(timertimenumchar(display[2]));
+    sethtml($("#timertimeh_0"),timertimenumchar(display[0]));
+    sethtml($("#timertimem_0"),timertimenumchar(display[1]));
+    sethtml($("#timertimes_0"),timertimenumchar(display[2]));
 }
 ipcRenderer.on('winshowinit', (event, arg) => {
     timerdata = arg;

@@ -65,3 +65,6 @@ function timertimenumchar(timestr) {
     }
     return charhtml;
 }
+function sethtml(div,html) {
+    if (div.html() != html) div.html(html);
+}

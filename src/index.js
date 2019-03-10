@@ -1,7 +1,7 @@
 const {app, BrowserWindow, Menu, shell, dialog, ipcMain} = require('electron');
+app.disableHardwareAcceleration();
 const path = require('path');
 const url = require('url');
-app.disableHardwareAcceleration();
 
 let win;
 let menu;
@@ -20,6 +20,20 @@ function mkmenu() {
     let menutmp = [{
         label: '文件',
         submenu: [{
+            label: '导入设置',
+            accelerator: 'CmdOrCtrl+O',
+            click: () => {
+                filedialog(true);
+            }
+        },{
+            label: '导出设置',
+            accelerator: 'CmdOrCtrl+S',
+            click: () => {
+                filedialog(false);
+            }
+        },{
+            type: 'separator'
+        },{
             label: '退出',
             accelerator: 'CmdOrCtrl+Q',
             click: () => {
@@ -232,19 +246,20 @@ function createWindowShow(showdata) {
         webPreferences:{
             nodeIntegration: true
         }
-    })
+    });
     winShow.setMenu(null);
     winShow.loadURL(url.format({
         pathname: path.join(__dirname, 'show.html'),
         protocol: 'file:',
         slashes: true
-    }))
+    }));
     if (devmode) winShow.webContents.openDevTools();
     winShow.webContents.on('did-finish-load', () => {
         winShow.webContents.send('changeShowColor', showcolor);win.webContents.send('changeShowColor', showcolor);
         winShow.webContents.send('winshowinit', showdata);
     });
     winShow.on('closed', () => {
+        win.webContents.send('indexmenu', 6);
         ipcMain.removeAllListeners('closeWinShow');
         winShow = null;
     });
@@ -268,13 +283,13 @@ function createWindowColor(nowcolor) {
             resizable: false,
             nodeIntegration: true
         }
-    })
+    });
     winColor.setMenu(null);
     winColor.loadURL(url.format({
         pathname: path.join(__dirname, 'color.html'),
         protocol: 'file:',
         slashes: true
-    }))
+    }));
     if (devmode) winColor.webContents.openDevTools();
     winColor.webContents.on('did-finish-load', () => {
         winColor.webContents.send('wincolorinit', nowcolor);
@@ -294,6 +309,28 @@ function createWindowColor(nowcolor) {
         winColor.close();
     });
 }
+function filedialog(isopen) {
+    if (isopen) {
+        dialog.showOpenDialog({
+            properties: ['openFile']
+        }, (files) => {
+            if (files) {
+                win.webContents.send('filedialogfb', [1,files]);
+            }
+        });
+    } else {
+        const options = {
+            title: '导出配置',
+            filters: [
+                { name: '配置文件', extensions: ['json'] }
+            ]
+        }
+        dialog.showSaveDialog(options, (filename) => {
+            win.webContents.send('filedialogfb', [2,filename]);
+        });
+    }
+}
+// ipcMain.on('filedialog', (event, arg) => { });
 function createWindowEdit(editarg) {
     winEdit = new BrowserWindow({
         width: 420, 
@@ -310,7 +347,7 @@ function createWindowEdit(editarg) {
             resizable: false,
             nodeIntegration: true
         }
-    })
+    });
     winEdit.setMenu(null);
     winEdit.loadURL(url.format({
         pathname: path.join(__dirname, 'edit.html'),

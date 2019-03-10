@@ -1,3 +1,6 @@
+body {
+    display: none;
+}
 .timer {
     display: block;
     height: 120px;
@@ -19,7 +22,7 @@
     height: 100%;
     text-align: right;
     display: inline-block;
-    background-color: #FFF;
+    /* background-color: #FFF; */
 }
 .timerinfobox {
     display: inline-block;
